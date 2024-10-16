@@ -43,6 +43,7 @@ jobs:
       # Add other steps for your build process, if needed
       - docker/build:
           dockerfile: my.Dockerfile
+          image: react_project/gitaction-org 
           path: react_project/gitaction-org  # Path to your Docker build context
 
   publish:
