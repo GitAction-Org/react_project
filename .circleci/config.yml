@@ -4,17 +4,14 @@ jobs:
   build:
     docker:
       - image: cimg/go:1.17
-    # resource_class: xlarge
     steps:
       - checkout
-      # ... steps for building/testing app ...
 
       - setup_remote_docker:
           docker_layer_caching: true
 
-      # build and push Docker image
       - run: |
-          TAG=0.1
+          TAG=0.2
           docker build -t onkarko1106/circleci-demo-docker:$TAG .
           echo "onkarko1106" | docker login -u "onkarko1106" --password-stdin
           docker push onkarko1106/circleci-demo-docker:$TAG
