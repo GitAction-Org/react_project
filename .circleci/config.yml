@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  docker: circleci/docker@2.7.2
+
 jobs:
   build:
     docker:
@@ -10,8 +13,12 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
 
-      - run: |
-          TAG=0.2
-          docker build -t onkarko1106/circleci-demo-docker:$TAG .
-          echo "onkarko1106" | docker login -u "onkarko1106" --password-stdin
-          docker push onkarko1106/circleci-demo-docker:$TAG
+      - docker/build:
+          image: onkarko1106/circleci-demo-docker
+          tag: "0.2"
+
+      - docker/push:
+          image: onkarko1106/circleci-demo-docker
+          tag: "0.2"
+          username: "onkarko1106"
+          password: "onkarko1106"
