@@ -29,9 +29,6 @@
 
 version: 2.1
 
-orbs:
-  docker: circleci/docker@2.7.2  # Use the Docker orb
-
 jobs:
   build:
     docker:
@@ -49,16 +46,17 @@ jobs:
       - image: circleci/python:3.8  # Use an appropriate image for your publish environment
     steps:
       - checkout
-      # Login to Docker Hub
-      - docker/login:
-          username: "onkarko1106"  # Ensure this is set in your CircleCI project settings
-          password: "onkarko1106"  # Ensure this is set in your CircleCI project settings
+      # Login to Docker Hub using the command line
+      - run:
+          name: Docker Login
+          command: |
+            docker login -u "onkarko1106" -p "onkarko1106" "docker.io "
       # Publish the Docker image
-      - docker/publish:
-          dockerfile: my.Dockerfile
-          image: react_project/gitaction-org  # Change this to your Docker Hub username and repository name
-          path: react_project/gitaction-org  # Path to your Docker build context
-          registry: docker.io  # Set the registry to Docker Hub (default)
+      - run:
+          name: Publish Docker Image
+          command: |
+            docker build -f my.Dockerfile -t react_project/gitaction-org react_project/gitaction-org
+            docker push react_project/gitaction-org
 
 workflows:
   build-and-publish-docker-image:
@@ -67,4 +65,3 @@ workflows:
       - publish:
           requires:
             - build  # Ensure the build job completes before publishing
-
