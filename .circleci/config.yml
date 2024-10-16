@@ -1,0 +1,89 @@
+version: 2.1
+
+orbs:
+  docker: circleci/docker@2.7.2
+
+executors:
+  docker-executor:
+    docker:
+      - image: circleci/node:latest  # Use CircleCI's Node image
+    working_directory: ~/app
+
+jobs:
+  setup:
+    executor: docker-executor
+    steps:
+      - checkout
+      - run:
+          name: Install npm
+          command: |
+            sudo apt-get update -qy
+            sudo apt-get install -y npm
+
+  build:
+    executor: docker-executor
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies and build
+          command: |
+            npm install
+            npm run build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - build
+
+  build_docker_image:
+    docker:
+      - image: circleci/docker:latest  # Use the Docker image provided by CircleCI
+    steps:
+      - attach_workspace:
+          at: /app
+      - docker/login:
+          username: "onkarko1106"
+          password: "onkarko1106"
+          registry: "https://hub.docker.com/"
+      - docker/build:
+          path: .
+          tags: "$DOCKER_REGISTRY/docker_ci_25_07/react_python_3_tier_application:v1"
+      - docker/save:
+          image: "$DOCKER_REGISTRY/docker_ci_25_07/react_python_3_tier_application:v1"
+          path: react_ci_3_tier_$DOCKER_TAG.tar
+      - run:
+          name: List Docker image tar file
+          command: ls -lh react_ci_3_tier_$DOCKER_TAG.tar
+      - persist_to_workspace:
+          root: .
+          paths:
+            - react_ci_3_tier_$DOCKER_TAG.tar
+
+  push_docker_image:
+    docker:
+      - image: circleci/docker:latest  # Use the Docker image provided by CircleCI
+    steps:
+      - attach_workspace:
+          at: /app
+      - run:
+          name: Load and push Docker image
+          command: |
+            echo "Loading Docker image from tar file"
+            ls -lh react_ci_3_tier_$DOCKER_TAG.tar  # verify the tar file
+            docker load -i react_ci_3_tier_$DOCKER_TAG.tar
+            echo "Pushing Docker image with tag: v1"
+            docker push "$DOCKER_REGISTRY/docker_ci_25_07/react_python_3_tier_application:$v1"
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - setup
+      - build:
+          requires:
+            - setup
+      - build_docker_image:
+          requires:
+            - build
+      - push_docker_image:
+          requires:
+            - build_docker_image
