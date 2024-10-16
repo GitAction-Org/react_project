@@ -1,24 +1,33 @@
 version: 2.1
 
 orbs:
-  docker: circleci/docker@2.7.2
+  docker: circleci/docker@2.1.1  
 
 jobs:
-  build:
+  build-and-push:
     docker:
-      - image: cimg/go:1.17
+      - image: cimg/base:stable  
     steps:
+      - setup_remote_docker
+
       - checkout
 
-      - setup_remote_docker:
-          docker_layer_caching: true
+      - docker/check  
 
       - docker/build:
-          image: onkarko1106/circleci-demo-docker
-          tag: "0.2"
-
+          image: onkarko1106/circleci-demo-docker_orbs
+          tag: "latest"            
+      
       - docker/push:
-          image: onkarko1106/circleci-demo-docker
-          tag: "0.2"
-          username: "onkarko1106"
-          password: "onkarko1106"
+          digest-path: /tmp/digest.txt  # Stores image digest in a file
+          image: onkarko1106/circleci-demo-docker_orbs
+          tag: "latest"                 # Tag to be pushed
+
+      - run:
+          command: |
+            echo "Digest is: $(</tmp/digest.txt)"  # Prints the image digest
+
+workflows:
+  commit:
+    jobs:
+      - build-and-push
