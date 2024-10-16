@@ -1,10 +1,22 @@
 version: 2.1
 orbs:
   docker: circleci/docker@2.7.2
-workflows:
+
+jobs:
   build-and-publish-docker-image:
-    jobs:
+    docker:
+      - image: circleci/python:3.8
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run:
+          name: Docker login
+          command: echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
       - docker/publish:
           image: onkarko1106/mycircleciimage_orbs
           use-docker-credentials-store: true
 
+workflows:
+  build-and-publish-docker-image:
+    jobs:
+      - build-and-publish-docker-image
