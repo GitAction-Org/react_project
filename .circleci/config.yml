@@ -16,5 +16,5 @@ jobs:
       - run: |
           TAG=0.1
           docker build -t onkarko1106/circleci-demo-docker:$TAG .
-          echo $DOCKER_PASS | docker login -u "onkarko" --password-stdin
+          echo "onkarko1106" | docker login -u "onkarko1106" --password-stdin
           docker push onkarko1106/circleci-demo-docker:$TAG
