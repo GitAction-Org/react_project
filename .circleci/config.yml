@@ -23,5 +23,5 @@ workflows:
           image: react_project/gitaction-org  # Change this to your Docker Hub username and repository name
           path: react_project/gitaction-org  # Path to your Docker build context
           registry: docker.io  # Set the registry to Docker Hub (default)
-          username: "onkarko1106 "  # Add your Docker Hub username
-          password: "onkarko1106"  # Add your Docker Hub password
+          # username: "onkarko1106 "  # Add your Docker Hub username
+          # password: "onkarko1106"  # Add your Docker Hub password
