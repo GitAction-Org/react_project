@@ -30,9 +30,7 @@
 version: 2.1
 
 orbs:
-  docker: circleci/docker@2.7.2
-  # Add the docker login orb
-  login: circleci/docker@2.7.2 
+  docker: circleci/docker@2.7.2  # Use the Docker orb
 
 jobs:
   build:
@@ -52,7 +50,7 @@ jobs:
     steps:
       - checkout
       # Login to Docker Hub
-      - login/docker:
+      - docker/login:
           username: "onkarko1106"  # Ensure this is set in your CircleCI project settings
           password: "onkarko1106"  # Ensure this is set in your CircleCI project settings
       # Publish the Docker image
@@ -69,3 +67,4 @@ workflows:
       - publish:
           requires:
             - build  # Ensure the build job completes before publishing
+
