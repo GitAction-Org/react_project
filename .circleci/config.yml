@@ -6,3 +6,5 @@ workflows:
     jobs:
       - docker/publish:
           image: onkarko1106/mycircleciimage_orbs
+          use-docker-credentials-store: true
+
