@@ -1,0 +1,187 @@
+image: node:latest
+
+# Define the stages for the CI pipeline
+stages:
+  - setup
+  - build
+  - test
+  - analyze
+  - trivy_scan
+  - synk_scan
+  - deploy
+
+# include:
+#    - template: Jobs/Secret-Detection.gitlab-ci.yml
+#    - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+#    - template: Jobs/SAST.gitlab-ci.yml
+
+variables:
+  DOCKER_IMAGE: "react_ci_image"
+  DOCKER_TAG: "v1"
+  DOCKER_REGISTRY: $CI_REGISTRY
+  DOCKER_USER: $CI_REGISTRY_USER
+  DOCKER_PASSWORD: $DOCKER_CI_TOKEN
+  GITLAB_ACCESS_TOKEN: $GITLAB_PERSONAL_TOKEN
+
+
+# Define job for setting up the environment
+setup:
+  stage: setup
+  script:
+    - apt-get update -qy
+    - apt-get install -y npm
+
+# Define job for building the React application.
+build:
+  stage: build
+  script:
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - build/
+  only:
+    - main
+
+build_docker_image:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$DOCKER_USER" -p "$DOCKER_PASSWORD" $DOCKER_REGISTRY
+  script:
+    - docker build -t registry.gitlab.com/docker_ci_25_07/react_python_3_tier_application:$DOCKER_TAG .
+    - docker save -o react_ci_3_tier_$DOCKER_TAG.tar $DOCKER_REGISTRY/docker_ci_25_07/react_python_3_tier_application:$DOCKER_TAG
+    - ls -lh react_ci_3_tier_$DOCKER_TAG.tar 
+  artifacts:
+    paths:
+      - react_ci_3_tier_$DOCKER_TAG.tar
+  # only:
+  #   - main
+
+
+test:
+  stage: test
+  script:
+    - "echo testing"
+  only:
+    - main
+
+# Define job for static code analysis
+sonarcloud-analysis:
+   stage: analyze
+   image:
+     name: sonarsource/sonar-scanner-cli:latest
+     entrypoint: [""]
+   cache:
+     key: "${CI_JOB_NAME}"
+     paths:
+       - .sonar/cache
+   script:
+     - sonar-scanner -Dsonar.sources=src/, -Dsonar.organization=gitaction-poc7-sonarqube -Dsonar.projectKey=gitaction-poc7-sonarqube_react-python-3-tier-application
+   only:
+    - main
+
+# Define job for deployment (change this according to your deployment process)
+deploy:
+  stage: deploy
+  script:
+    - echo "Deployment script goes here"
+  # Only deploy when changes are made to the main branch
+  only:
+    - main
+
+trivy_scan:
+  stage: trivy_scan
+  image: debian:buster
+  before_script:
+    - apt-get update
+    - apt-get install -y wget apt-transport-https gnupg lsb-release
+    - wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | apt-key add -
+    - echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | tee -a /etc/apt/sources.list.d/trivy.list
+    - apt-get update
+    - apt-get install -y trivy
+
+  script:
+    - trivy repo https://gitlab.com/gitlab_advance1/react_python_3_tier_application.git
+    - trivy --format json --output trivy_report.json repo https://gitlab.com/gitlab_advance1/react_python_3_tier_application.git
+
+  artifacts:
+    paths:
+      - trivy_report.json
+  only:
+    - main
+
+
+
+trivy_html_conversion:
+  stage: trivy_scan
+  image: debian:buster
+  needs:
+    - trivy_scan
+  before_script:
+    - apt-get update
+    - apt-get install -y wget apt-transport-https gnupg lsb-release jq
+  script:
+    - |
+      cat trivy_report.json | jq -r '[
+        "<html><body><table border=\"1\">",
+        "<tr><th>Target</th><th>Vulnerability ID</th><th>Severity</th><th>Description</th></tr>",
+        (.Results[] |
+          .Vulnerabilities[]? |
+          "<tr><td>\(.Target)</td><td>\(.VulnerabilityID)</td><td>\(.Severity)</td><td>\(.Description)</td></tr>"
+        ),
+        "</table></body></html>"
+      ] | .[]' > trivy_report.html
+  artifacts:
+    paths:
+      - trivy_report.html
+  only:
+    - main
+
+
+synk-scan:
+  image: node:latest
+  stage: synk_scan
+  services:
+  - openjdk:11-jre-slim-buster
+  before_script:
+    - apt-get update
+    - apt-get install default-jdk -y
+  script:
+    - npm install -g npm@latest
+    - npm install -g snyk
+    - snyk auth $SNYK_TOKEN
+    - snyk test 
+  only:
+    - main
+
+
+push_docker_image:
+  stage: deploy
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$DOCKER_USER" -p "$DOCKER_PASSWORD" $DOCKER_REGISTRY
+  script:
+    - echo "Loading Docker image from tar file"
+    - ls -lh react_ci_3_tier_$DOCKER_TAG.tar  # verify the tar file
+    - docker load -i react_ci_3_tier_$DOCKER_TAG.tar
+    - echo "Pushing Docker image with tag:$DOCKER_TAG"
+    - docker push $DOCKER_REGISTRY/docker_ci_25_07/react_python_3_tier_application:$DOCKER_TAG
+  # only:
+  #   - main
+
+
+
+# Define job for publishing build artifacts to JFrog Artifactory
+# publish_to_artifact_jfrog:
+#   stage: deploy
+#   script:
+#   - npm login --registry=https://onkarko.jfrog.io/artifactory/api/npm/React_Python_3_tier_application/ --auth-type=web
+#   - npm publish --registry https://onkarko.jfrog.io/artifactory/api/npm/React_Python_3_tier_application/
+
+  # only:
+  #   - main  # Only publish from the main branch

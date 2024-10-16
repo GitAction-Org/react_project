@@ -1,0 +1,12 @@
+.newspaper-front-page {
+    /* Add any necessary styling for the container */
+  }
+  
+  .background-image {
+    background-image: url('./resources/newspaper2.jpg'); /* Adjust the path based on your directory structure */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 100vh;
+  }
+  
