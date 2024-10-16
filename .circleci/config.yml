@@ -1,32 +1,10 @@
 version: 2.1
-
 orbs:
   docker: circleci/docker@2.7.2
-
 workflows:
   build-and-publish-docker-image:
     jobs:
-      - docker/build-and-push-image:
+      - docker/publish:
           image: onkarko1106/mycircleciimage_orbs
-          dockerfile: Dockerfile
-          tag: "latest"
-          registry: "docker.io"
-          repo: "onkarko1106/mycircleciimage_orbs"
           use-docker-credentials-store: true
 
-jobs:
-  docker/build-and-push-image:
-    docker:
-      - image: circleci/python:3.8
-    steps:
-      - setup_remote_docker
-      - checkout
-      - run:
-          name: Docker login
-          command: echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-      - docker/build:
-          image: onkarko1106/mycircleciimage_orbs
-          tag: latest
-      - docker/push:
-          image: onkarko1106/mycircleciimage_orbs
-          tag: latest
