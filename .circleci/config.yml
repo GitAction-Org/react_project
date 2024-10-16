@@ -15,6 +15,6 @@ jobs:
       # build and push Docker image
       - run: |
           TAG=0.1
-          docker build -t onkarko1106/CircleCI-Public/circleci-demo-docker:$TAG .
+          docker build -t onkarko1106/circleci-demo-docker:$TAG .
           echo $DOCKER_PASS | docker login -u "onkarko" --password-stdin
-          docker push onkarko1106/CircleCI-Public/circleci-demo-docker:$TAG
+          docker push onkarko1106/circleci-demo-docker:$TAG
