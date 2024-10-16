@@ -1,9 +1,27 @@
+# version: 2.1
+# orbs:
+#   docker: circleci/docker@2.7.2
+# workflows:
+#   build-docker-image-only:
+#     jobs:
+#       - docker/publish:
+#           deploy: false
+#           image: react_project/gitaction-org
+
+
+
+
 version: 2.1
 orbs:
-  docker: circleci/docker@2.7.2
+  docker: circleci/docker@2.7.2  # Make sure you have the correct version
+
 workflows:
-  build-docker-image-only:
+  build-and-publish-docker-image:
     jobs:
       - docker/publish:
-          deploy: false
-          image: react_project/gitaction-org
+          dockerfile: my.Dockerfile
+          image: react_project/gitaction-org  # Change this to your Docker Hub username and repository name
+          path: react_project/gitaction-org  # Path to your Docker build context
+          registry: docker.io  # Set the registry to Docker Hub (default)
+          username: "onkarko1106 "  # Add your Docker Hub username
+          password: "onkarko1106"  # Add your Docker Hub password
