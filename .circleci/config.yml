@@ -6,4 +6,4 @@ workflows:
     jobs:
       - docker/publish:
           deploy: false
-          image: $CIRCLE_PROJECT_USERNAME/gitaction-org
+          image: react_project/gitaction-org
