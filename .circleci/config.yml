@@ -1,4 +1,29 @@
-#new
+# #new
+# version: 2.1
+
+# jobs:
+#   build:
+#     docker:
+#       - image: cimg/go:1.17
+#     steps:
+#       - checkout
+
+#       - run:
+#          echo "passwrod $docker_password"
+#          echo "username $docker_username"
+
+#       - setup_remote_docker:
+#           docker_layer_caching: true
+      
+
+#       - run: |
+#           echo "$DOCKER_PASS  $DOCKER_USER "
+#           TAG=0.2
+#           docker build -t onkarko1106/circleci-demo-docker:$TAG .
+#           echo "$docker_password" | docker login -u "$docker_username" --password-stdin
+#           docker push onkarko1106/circleci-demo-docker:$TAG
+
+
 version: 2.1
 
 jobs:
@@ -8,17 +33,25 @@ jobs:
     steps:
       - checkout
 
-      - run:
-         echo "passwrod $docker_password"
-         echo "username $docker_username"
-
+      # Attach context with environment variables
       - setup_remote_docker:
           docker_layer_caching: true
-      
-
+          version: 20.10.7  # Make sure remote Docker version is specified if needed
+      - run:
+          name: Check Environment Variables
+          command: |
+            echo "username $docker_username"
+            echo "password $docker_password"
       - run: |
-          echo "$DOCKER_PASS  $DOCKER_USER "
+          echo "$DOCKER_PASS $DOCKER_USER"
           TAG=0.2
           docker build -t onkarko1106/circleci-demo-docker:$TAG .
           echo "$docker_password" | docker login -u "$docker_username" --password-stdin
           docker push onkarko1106/circleci-demo-docker:$TAG
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - build:
+          context: docker-creds  # Reference the context where env vars are stored
