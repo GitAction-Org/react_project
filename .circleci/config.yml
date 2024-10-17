@@ -11,6 +11,7 @@ jobs:
           docker_layer_caching: true
 
       - run: |
+          echo "$DOCKER_PASS  $DOCKER_USER "
           TAG=0.2
           docker build -t onkarko1106/circleci-demo-docker:$TAG .
           echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
