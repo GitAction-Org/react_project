@@ -36,7 +36,7 @@ jobs:
       # Attach context with environment variables
       - setup_remote_docker:
           docker_layer_caching: true
-          version: 20.10.7  # Make sure remote Docker version is specified if needed
+          # version: 20.10.7  # Make sure remote Docker version is specified if needed
       - run:
           name: Check Environment Variables
           command: |
