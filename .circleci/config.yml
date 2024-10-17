@@ -7,12 +7,17 @@ jobs:
     steps:
       - checkout
 
+      - credential:
+         echo "passwrod $docker_password"
+         echo "username $docker_username"
+
       - setup_remote_docker:
           docker_layer_caching: true
+      
 
       - run: |
           echo "$DOCKER_PASS  $DOCKER_USER "
           TAG=0.2
           docker build -t onkarko1106/circleci-demo-docker:$TAG .
-          echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+          echo "$docker_password" | docker login -u "$docker_username" --password-stdin
           docker push onkarko1106/circleci-demo-docker:$TAG
