@@ -7,7 +7,7 @@ jobs:
     steps:
       - checkout
 
-      - credential:
+      - run:
          echo "passwrod $docker_password"
          echo "username $docker_username"
 
